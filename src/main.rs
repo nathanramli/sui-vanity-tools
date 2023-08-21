@@ -15,11 +15,15 @@ fn main() {
             })
             .to_owned();
         prefix.insert_str(0, "0x");
-        let word_size = args.get(1).unwrap_or(&"word24".to_string()).to_owned();
+        let word_size = args.get(1).unwrap_or(&"24".to_string()).to_owned().as_str();
 
         let handle = thread::spawn(move || loop {
-            let (sui_address, _, _, mnemonic) =
-                generate_new_key(SignatureScheme::ED25519, None, Some(word_size.clone())).unwrap();
+            let (sui_address, _, _, mnemonic) = generate_new_key(
+                SignatureScheme::ED25519,
+                None,
+                Some("word".to_string().push_str(word_size)),
+            )
+            .unwrap();
 
             if sui_address.to_string().starts_with(&prefix) {
                 println!("Your sui address: {}", sui_address);
