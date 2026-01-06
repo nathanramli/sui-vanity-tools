@@ -17,7 +17,7 @@ A high-performance vanity address generator for Sui blockchain. Generate wallet 
 Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed, then clone and build:
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/nathanramli/sui-vanity-tools.git
 cd sui-vanity-tools
 cargo build --release
 ```
