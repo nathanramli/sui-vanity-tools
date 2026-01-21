@@ -26,10 +26,6 @@ struct Args {
     #[arg(short, long)]
     threads: Option<usize>,
 
-    /// Case-insensitive matching
-    #[arg(short, long, default_value = "false")]
-    case_insensitive: bool,
-
     /// Batch size: number of keys to generate before checking counter
     #[arg(short, long, default_value = "1000")]
     batch_size: u32,
@@ -48,30 +44,14 @@ enum MatchMode {
 }
 
 impl MatchMode {
-    fn matches(&self, address: &str, case_insensitive: bool) -> bool {
+    fn matches(&self, address: &str) -> bool {
+        let addr_lower = address.to_lowercase();
         match self {
-            MatchMode::Prefix(prefix) => {
-                if case_insensitive {
-                    address.to_lowercase().starts_with(&prefix.to_lowercase())
-                } else {
-                    address.starts_with(prefix)
-                }
-            }
-            MatchMode::Suffix(suffix) => {
-                if case_insensitive {
-                    address.to_lowercase().ends_with(&suffix.to_lowercase())
-                } else {
-                    address.ends_with(suffix)
-                }
-            }
+            MatchMode::Prefix(prefix) => addr_lower.starts_with(&prefix.to_lowercase()),
+            MatchMode::Suffix(suffix) => addr_lower.ends_with(&suffix.to_lowercase()),
             MatchMode::Both { prefix, suffix } => {
-                if case_insensitive {
-                    let addr_lower = address.to_lowercase();
-                    addr_lower.starts_with(&prefix.to_lowercase())
-                        && addr_lower.ends_with(&suffix.to_lowercase())
-                } else {
-                    address.starts_with(prefix) && address.ends_with(suffix)
-                }
+                addr_lower.starts_with(&prefix.to_lowercase())
+                    && addr_lower.ends_with(&suffix.to_lowercase())
             }
         }
     }
@@ -161,7 +141,6 @@ fn main() {
     println!("Word size:         {}", args.word_size);
     println!("Worker threads:    {}", num_threads);
     println!("Batch size:        {}", args.batch_size);
-    println!("Case insensitive:  {}", args.case_insensitive);
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     // Calculate estimated difficulty
@@ -187,7 +166,6 @@ fn main() {
         let result_tx = result_tx.clone();
         let word_size = args.word_size;
         let batch_size = args.batch_size;
-        let case_insensitive = args.case_insensitive;
 
         let handle = thread::spawn(move || {
             let mut local_attempts = 0u64;
@@ -211,7 +189,7 @@ fn main() {
 
                     let address_str = sui_address.to_string();
 
-                    if match_mode.matches(&address_str, case_insensitive) {
+                    if match_mode.matches(&address_str) {
                         // Found a match!
                         found.store(true, Ordering::Relaxed);
                         total_attempts.fetch_add(local_attempts, Ordering::Relaxed);
